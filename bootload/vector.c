@@ -4,6 +4,7 @@ extern void start(void);        /* スタート・アップ */
 extern void intr_softerr(void); /* ソフトウエア・エラー */
 extern void intr_syscall(void); /* システム・コール */
 extern void intr_serintr(void); /* シリアル割込み */
+extern void intr_timer_expired(void); /* タイマー切れ */
 
 /*
  * 割込みベクタの設定．
@@ -15,7 +16,8 @@ void (*vectors[])(void) = {
 	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
 	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
 	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	intr_timer_expired, intr_timer_expired, intr_timer_expired, intr_timer_expired,
+	intr_timer_expired, intr_timer_expired, intr_timer_expired, intr_timer_expired,
 	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
 	intr_serintr, intr_serintr, intr_serintr, intr_serintr,
 	intr_serintr, intr_serintr, intr_serintr, intr_serintr,

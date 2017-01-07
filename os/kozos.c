@@ -373,6 +373,7 @@ static kz_thread_id_t thread_recv(kz_msgbox_id_t id, int *sizep, char **pp)
 /* システム・コールの処理(kz_setintr():割込みハンドラ登録) */
 static int thread_setintr(softvec_type_t type, kz_handler_t handler)
 {
+	// thread_intr() は、handlers[tpe]を実行する
 	static void thread_intr(softvec_type_t type, unsigned long sp);
 
 	/*
@@ -545,6 +546,7 @@ void kz_start(kz_func_t func, char *name, int priority, int stacksize,
 	/* 割込みハンドラの登録 */
 	thread_setintr(SOFTVEC_TYPE_SYSCALL, syscall_intr); /* システム・コール */
 	thread_setintr(SOFTVEC_TYPE_SOFTERR, softerr_intr); /* ダウン要因発生 */
+	//thread_setintr(SOFTVEC_TYPE_TIMER_EXPIRED, timer_expired_intr); /* タイマーが切れたら */
 
 	/* システム・コール発行不可なので直接関数を呼び出してスレッド作成する */
 	current = (kz_thread *)thread_run(func, name, priority, stacksize,

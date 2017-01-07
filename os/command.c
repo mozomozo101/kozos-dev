@@ -2,6 +2,8 @@
 #include "kozos.h"
 #include "consdrv.h"
 #include "lib.h"
+#include "intr.h"
+#include "timer.h"
 
 /* コンソール・ドライバの使用開始をコンソール・ドライバに依頼する */
 static void send_use(int index)
@@ -44,6 +46,12 @@ int command_main(int argc, char *argv[])
 		if (!strncmp(p, "echo", 4)) { /* echoコマンド */
 			send_write(p + 4); /* echoに続く文字列を出力する */
 			send_write("\n");
+		} else if (!strncmp(p, "timer", 5)) { // タイマー発動
+			softvec_setintr(SOFTVEC_TYPE_TIMER_EXPIRED, timer_intr);
+			timer_start(2);
+			timer_start(2);
+			timer_start(2);
+			timer_start(2);
 		} else {
 			send_write("unknown.\n");
 		}
