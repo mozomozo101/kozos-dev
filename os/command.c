@@ -47,8 +47,9 @@ int command_main(int argc, char *argv[])
 			send_write(p + 4); /* echoに続く文字列を出力する */
 			send_write("\n");
 		} else if (!strncmp(p, "timer", 5)) { // タイマー発動
-			softvec_setintr(SOFTVEC_TYPE_TIMER_EXPIRED, timer_intr);
-			timer_start(10);
+			//softvec_setintr(SOFTVEC_TYPE_TIMER_EXPIRED, timer_intr);
+			kz_timer(10);
+			//timer_start(10);
 		} else {
 			send_write("unknown.\n");
 		}

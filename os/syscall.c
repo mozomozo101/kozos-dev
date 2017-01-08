@@ -106,6 +106,14 @@ int kz_setintr(softvec_type_t type, kz_handler_t handler)
 	return param.un.setintr.ret;
 }
 
+int kz_timer(int second)
+{
+	kz_syscall_param_t param;
+	param.un.timer.second = second;
+	kz_syscall(KZ_SYSCALL_TYPE_TIMER, &param);
+	return param.un.timer.ret;
+}
+
 /* サービス・コール */
 
 int kx_wakeup(kz_thread_id_t id)
@@ -141,3 +149,6 @@ int kx_send(kz_msgbox_id_t id, int size, char *p)
 	kz_srvcall(KZ_SYSCALL_TYPE_SEND, &param);
 	return param.un.send.ret;
 }
+
+
+

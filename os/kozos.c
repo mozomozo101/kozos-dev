@@ -5,6 +5,7 @@
 #include "syscall.h"
 #include "memory.h"
 #include "lib.h"
+#include "timer.h"
 
 #define THREAD_NUM 6
 #define PRIORITY_NUM 16
@@ -277,6 +278,9 @@ static int thread_kmfree(char *p)
 	return 0;
 }
 
+
+
+
 /* メッセージの送信処理 */
 static void sendmsg(kz_msgbox *mboxp, kz_thread *thp, int size, char *p)
 {
@@ -388,6 +392,15 @@ static int thread_setintr(softvec_type_t type, kz_handler_t handler)
 	return 0;
 }
 
+
+/* タイマー*/
+static int thread_timer(int second)
+{
+	puts("thread_timer start\n");
+	timer_start(second);
+
+}
+
 static void call_functions(kz_syscall_type_t type, kz_syscall_param_t *p)
 {
 	/* システム・コールの実行中にcurrentが書き換わるので注意 */
@@ -433,6 +446,9 @@ static void call_functions(kz_syscall_type_t type, kz_syscall_param_t *p)
 		case KZ_SYSCALL_TYPE_SETINTR: /* kz_setintr() */
 			p->un.setintr.ret = thread_setintr(p->un.setintr.type,
 					p->un.setintr.handler);
+			break;
+		case KZ_SYSCALL_TYPE_TIMER: /* kz_timer() */
+			p->un.timer.ret = thread_timer(p->un.timer.second);
 			break;
 		default:
 			break;
