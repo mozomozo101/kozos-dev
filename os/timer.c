@@ -89,6 +89,13 @@ static void timer_cancel(void)
 void timer_intr(softvec_type_t type, unsigned long sp)
 {
 	puts("timer expired!\n");
+
+	// thread_send(kz_msgbox_id_t id, int size, char *p)
+	//
+	// send(timers->top, 
+	
+
+
 	timer_cancel();
 }
 

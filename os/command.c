@@ -49,7 +49,8 @@ int command_main(int argc, char *argv[])
 		} else if (!strncmp(p, "timer", 5)) { // タイマー発動
 			//softvec_setintr(SOFTVEC_TYPE_TIMER_EXPIRED, timer_intr);
 			kz_timer(10);
-			//timer_start(10);
+			kz_recv(MSGBOX_ID_TIMER ,0, NULL);
+			puts("command_main():timer expire success\n");
 		} else {
 			send_write("unknown.\n");
 		}

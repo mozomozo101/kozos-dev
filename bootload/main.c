@@ -78,7 +78,10 @@ int main(void)
 		if (!strcmp(buf, "load")) { /* XMODEMでのファイルのダウンロード */
 			loadbuf = (char *)(&buffer_start);
 			size = xmodem_recv(loadbuf);
+			puts("\nwait start\n");
+			//serial_init(SERIAL_DEFAULT_DEVICE);
 			wait(); /* 転送アプリが終了し端末アプリに制御が戻るまで待ち合わせる */
+			puts("\nwait end\n");
 			if (size < 0) {
 				puts("\nXMODEM receive error!\n");
 			} else {
