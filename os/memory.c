@@ -72,6 +72,8 @@ void *kzmem_alloc(int size)
 		p = &pool[i];
 		if (size <= p->size - sizeof(kzmem_block)) {
 			if (p->free == NULL) { /* 解放済み領域が無い(メモリ・ブロック不足) */
+				if (i < MEMORY_AREA_NUM)
+					continue;
 				kz_sysdown();
 				return NULL;
 			}
