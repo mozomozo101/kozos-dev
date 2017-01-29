@@ -102,7 +102,7 @@ static int xmodem_read_block(unsigned char block_number, char *const loadbuf)
 static struct elf_header *load_data(char *const loadbuf, long total_size, struct debug_struct *d_st)
 {
 	static struct elf_header e_hdr;
-	static struct program_header p_hdr[2]; // mallocが使えないので動的な確保は難しい
+	static struct program_header p_hdr[5]; // mallocが使えないので動的な確保は難しい
 	static int program_header_size = 1;
 	static long current_size = 0;
 	static int p_hdr_index = 0;
