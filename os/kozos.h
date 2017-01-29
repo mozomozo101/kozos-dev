@@ -19,6 +19,7 @@ int kz_kmfree(void *p);
 int kz_send(kz_msgbox_id_t id, int size, char *p);
 kz_thread_id_t kz_recv(kz_msgbox_id_t id, int *sizep, char **pp);
 int kz_setintr(softvec_type_t type, kz_handler_t handler);
+int kz_timer(int second);
 
 /* サービス・コール */
 int kx_wakeup(kz_thread_id_t id);

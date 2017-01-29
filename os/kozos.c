@@ -5,6 +5,7 @@
 #include "syscall.h"
 #include "memory.h"
 #include "lib.h"
+#include "timer.h"
 
 #define THREAD_NUM 6
 #define PRIORITY_NUM 16
@@ -71,10 +72,19 @@ static struct {
 	kz_thread *tail;
 } readyque[PRIORITY_NUM];
 
+
+/* タイマーキュー */
+typedef struct _timer_queue {
+	struct _timer_queue *next;
+	int second;
+	kz_thread *thp;
+} timer_queue;
+
 static kz_thread *current; /* カレント・スレッド */
 static kz_thread threads[THREAD_NUM]; /* タスク・コントロール・ブロック */
 static kz_handler_t handlers[SOFTVEC_TYPE_NUM]; /* 割込みハンドラ */
 static kz_msgbox msgboxes[MSGBOX_ID_NUM]; /* メッセージ・ボックス */
+static timer_queue *timers;			/* タイマーキューの先頭 */
 
 void dispatch(kz_context *context);
 
@@ -277,6 +287,9 @@ static int thread_kmfree(char *p)
 	return 0;
 }
 
+
+
+
 /* メッセージの送信処理 */
 static void sendmsg(kz_msgbox *mboxp, kz_thread *thp, int size, char *p)
 {
@@ -373,6 +386,7 @@ static kz_thread_id_t thread_recv(kz_msgbox_id_t id, int *sizep, char **pp)
 /* システム・コールの処理(kz_setintr():割込みハンドラ登録) */
 static int thread_setintr(softvec_type_t type, kz_handler_t handler)
 {
+	// thread_intr() は、handlers[tpe]を実行する
 	static void thread_intr(softvec_type_t type, unsigned long sp);
 
 	/*
@@ -385,6 +399,40 @@ static int thread_setintr(softvec_type_t type, kz_handler_t handler)
 	putcurrent();
 
 	return 0;
+}
+
+
+/* タイマー*/
+static int thread_timer(int second)
+{
+	puts("thread_timer start\n");
+
+	timer_queue **tmpp;
+	timer_queue *tmp;
+
+	tmp = kz_kmalloc(sizeof(*tmp));
+	tmp->next = NULL;
+	tmp->thp = current;
+
+	for (tmpp = &timers; *tmpp; tmpp = &((*tmpp)->next)) {
+		if (second < (*tmpp)->second) {
+			(*tmpp)->second -= second;
+			break;
+		}
+		second -= (*tmpp)->second;
+	}
+
+	if (second == 0) second++;
+	tmp->second = second;
+	tmp->next = *tmpp;
+	*tmpp = tmp;
+
+	putcurrent(); 
+
+	timer_start(second);
+	
+	return 0;
+
 }
 
 static void call_functions(kz_syscall_type_t type, kz_syscall_param_t *p)
@@ -432,6 +480,9 @@ static void call_functions(kz_syscall_type_t type, kz_syscall_param_t *p)
 		case KZ_SYSCALL_TYPE_SETINTR: /* kz_setintr() */
 			p->un.setintr.ret = thread_setintr(p->un.setintr.type,
 					p->un.setintr.handler);
+			break;
+		case KZ_SYSCALL_TYPE_TIMER: /* kz_timer() */
+			p->un.timer.ret = thread_timer(p->un.timer.second);
 			break;
 		default:
 			break;
@@ -499,6 +550,29 @@ static void softerr_intr(void)
 	thread_exit(); /* スレッド終了する */
 }
 
+static void timer_expired_intr(void)
+{
+	// タイマー切れの処理はカーネル内で。
+	// スレッド化するべきか悩んだけど、kz_sendとかもスレッド化してないので、
+	// やる必要無いのかも。
+
+	puts("******** \ntimer_expired_intr *******\n");
+
+	// timers->thp へsendmesg
+	sendmsg(&msgboxes[MSGBOX_ID_TIMER], timers->thp, 0, NULL);
+	
+	// timers->thp をスレッドキューに入れる
+	kz_thread *tmp1 = current;
+	current = timers->thp;
+	putcurrent();
+	current = tmp1;
+
+	// タイマーキュー更新
+	timer_queue *tmp2 = timers;
+	timers = timers->next;
+	kz_kmfree(tmp2);
+}
+
 /* 割込み処理の入口関数 */
 static void thread_intr(softvec_type_t type, unsigned long sp)
 {
@@ -545,6 +619,7 @@ void kz_start(kz_func_t func, char *name, int priority, int stacksize,
 	/* 割込みハンドラの登録 */
 	thread_setintr(SOFTVEC_TYPE_SYSCALL, syscall_intr); /* システム・コール */
 	thread_setintr(SOFTVEC_TYPE_SOFTERR, softerr_intr); /* ダウン要因発生 */
+	thread_setintr(SOFTVEC_TYPE_TIMER_EXPIRED, timer_expired_intr); /* タイマーが切れたら */
 
 	/* システム・コール発行不可なので直接関数を呼び出してスレッド作成する */
 	current = (kz_thread *)thread_run(func, name, priority, stacksize,

@@ -79,3 +79,29 @@ _intr_serintr:
 	mov.l	@er7+,er5
 	mov.l	@er7+,er6
 	rte
+
+	.global	_intr_timer_expired
+#	.type	_intr_timer_expired,@function
+_intr_timer_expired:
+	mov.l	er6,@-er7
+	mov.l	er5,@-er7
+	mov.l	er4,@-er7
+	mov.l	er3,@-er7
+	mov.l	er2,@-er7
+	mov.l	er1,@-er7
+	mov.l	er0,@-er7
+	mov.l	er7,er1
+	mov.l	#_intrstack,sp
+	mov.l	er1,@-er7
+	mov.w	#SOFTVEC_TYPE_TIMER_EXPIRED,r0
+	jsr	@_interrupt
+	mov.l	@er7+,er1
+	mov.l	er1,er7
+	mov.l	@er7+,er0
+	mov.l	@er7+,er1
+	mov.l	@er7+,er2
+	mov.l	@er7+,er3
+	mov.l	@er7+,er4
+	mov.l	@er7+,er5
+	mov.l	@er7+,er6
+	rte

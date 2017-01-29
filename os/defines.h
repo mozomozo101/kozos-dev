@@ -15,7 +15,8 @@ typedef void (*kz_handler_t)(void);
 typedef enum {
 	MSGBOX_ID_CONSINPUT = 0,
 	MSGBOX_ID_CONSOUTPUT,
-	MSGBOX_ID_NUM
+	MSGBOX_ID_NUM,
+	MSGBOX_ID_TIMER
 } kz_msgbox_id_t;
 
 #endif
